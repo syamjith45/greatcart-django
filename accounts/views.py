@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-
+from cart.views import _cart_id
 
 # Verification email
 from django.contrib.sites.shortcuts import get_current_site
@@ -50,21 +50,46 @@ def register(request):
     'form':form
     }
     return render(request,'accounts/register.html',context)
+from cart.models import Cart, CartItem
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib import auth
+
 def login(request):
     if request.method == "POST":
-        email=request.POST['email']
-        password=request.POST['password']
+        email = request.POST['email']
+        password = request.POST['password']
 
-        user = auth.authenticate(email=email,password=password)
+        user = auth.authenticate(email=email, password=password)
 
         if user is not None:
-            auth.login(request,user)
-            messages.success(request,"you are now logged in")
+            try:
+                cart = Cart.objects.get(cart_id=_cart_id(request))
+                is_cart_item_exists = CartItem.objects.filter(cart=cart).exists()
+
+                if is_cart_item_exists:
+                    cart_items = CartItem.objects.filter(cart=cart)
+
+                    for item in cart_items:
+                        item.user = user
+                        item.save()  # Save the changes
+
+            except Cart.DoesNotExist:
+                pass  # Handle the case where the cart does not exist
+            except CartItem.DoesNotExist:
+                pass  # Handle the case where the cart item does not exist
+            except Exception as e:
+                # Handle other exceptions, log the error, or print for debugging
+                print(f"An error occurred: {str(e)}")
+
+            auth.login(request, user)
+            messages.success(request, "You are now logged in.")
             return redirect('home')
         else:
-            messages.error(request,"invlaid login credential")
+            messages.error(request, "Invalid login credentials.")
             return redirect('login')
-    return render(request,'accounts/login.html')
+
+    return render(request, 'accounts/login.html')
 
 
 @login_required(login_url = 'login')
