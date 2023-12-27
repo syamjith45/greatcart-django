@@ -4,7 +4,9 @@ from cart.models import CartItem
 from .forms import OrderForm
 import datetime
 from .models import Order
-
+import razorpay
+from greenkart.settings import RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET
+client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 def payments(request):
     return render(request,'orders/payments.html')
@@ -60,12 +62,28 @@ def place_order(request, total=0, quantity=0):
             data.save()
 
             order = Order.objects.get(user=current_user, is_ordered=False, order_number=order_number)
+
+            DATA = {
+                "amount": float(data.order_total)*100,
+                "currency": "INR",
+                "receipt": "receipt#1"+ data.order_number,
+                "notes": {
+                    "key1": "value3",
+                    "key2": "value2"
+                }
+            }
+            rzp_order=client.order.create(data=DATA)
+            rzp_order_id=rzp_order['id']
+            print(rzp_order)
             context = {
                 'order': order,
                 'cart_items': cart_items,
                 'total': total,
                 'tax': tax,
                 'grand_total': grand_total,
+                'rzp_order_id':rzp_order_id,
+                'RAZORPAY_KEY_ID':RAZORPAY_KEY_ID,
+                'rzp_amount': float(data.order_total)*100,
             }
             return render(request, 'orders/payments.html', context)
 

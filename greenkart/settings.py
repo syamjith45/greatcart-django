@@ -147,3 +147,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'syamjith0505@gmail.com'
 EMAIL_HOST_PASSWORD = 'ldaq qnhv tiuy lgzb '
 EMAIL_USE_TLS = True
+
+
+RAZORPAY_KEY_ID = 'rzp_test_VLc6lVXS8XDNVf'
+RAZORPAY_KEY_SECRET = 'xCt6VjvKbW5ep4Btne3ts6XN'
