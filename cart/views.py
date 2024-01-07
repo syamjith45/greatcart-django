@@ -3,7 +3,6 @@ from .models import Cart, CartItem
 from store.models import Product,Variation
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-
 def _cart_id(request):
     cart = request.session.session_key
     if not cart:
